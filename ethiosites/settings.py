@@ -1,13 +1,36 @@
 # ethiosites/settings.py
-from ast import Delete
-import os
 from pathlib import Path
+
+import django.conf.locale
+import environ
+from django.conf.locale import LANG_INFO
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-change-this-in-production'
-DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*.local']
+env = environ.Env(
+    DJANGO_DEBUG=(bool, False),
+    DJANGO_SECRET_KEY=(str, ''),
+    DJANGO_ALLOWED_HOSTS=(list, ['127.0.0.1', 'localhost']),
+    DJANGO_CSRF_TRUSTED_ORIGINS=(list, []),
+    DATABASE_URL=(str, f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+    DJANGO_SECURE_SSL_REDIRECT=(bool, False),
+    DJANGO_SESSION_COOKIE_SECURE=(bool, False),
+    DJANGO_CSRF_COOKIE_SECURE=(bool, False),
+    DJANGO_SECURE_HSTS_SECONDS=(int, 0),
+)
+
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    env.read_env(str(env_file))
+else:
+    sample_env = BASE_DIR / 'env.example'
+    if sample_env.exists():
+        env.read_env(str(sample_env))
+
+SECRET_KEY = env('DJANGO_SECRET_KEY') or 'django-insecure-change-me'
+DEBUG = env('DJANGO_DEBUG')
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS')
+CSRF_TRUSTED_ORIGINS = env('DJANGO_CSRF_TRUSTED_ORIGINS')
 
 # Internationalization
 LANGUAGE_CODE = 'en'
@@ -37,6 +60,7 @@ USE_I18N = True
 USE_L10N = True
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     # Unfold must be first
     'unfold',
     'unfold.contrib.filters',
@@ -58,7 +82,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -77,6 +103,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -87,18 +114,50 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ethiosites.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db('DATABASE_URL')
 }
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_USE_FINDERS = DEBUG
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
+
+SECURE_SSL_REDIRECT = env('DJANGO_SECURE_SSL_REDIRECT') or not DEBUG
+SESSION_COOKIE_SECURE = env('DJANGO_SESSION_COOKIE_SECURE') or not DEBUG
+CSRF_COOKIE_SECURE = env('DJANGO_CSRF_COOKIE_SECURE') or not DEBUG
+SECURE_HSTS_SECONDS = env('DJANGO_SECURE_HSTS_SECONDS')
+SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
 
 UNFOLD = {
     "SITE_TITLE": "EthioSites – Multi-Client CMS",

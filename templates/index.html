@@ -152,10 +152,13 @@
         // Send AJAX request to track the click
         fetch(`/track/section-cta-click/${sectionId}/`, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({})
         }).then(response => {
             if (response.ok) {
                 // Redirect to the original URL after tracking

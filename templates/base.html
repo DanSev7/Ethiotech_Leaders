@@ -200,7 +200,7 @@
                     <div class="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 cursor-pointer hover:bg-white/30 transition-all duration-300" 
                          onclick="toggleLanguageDropdown()">
                         <i data-lucide="globe" class="w-4 h-4"></i>
-                        <span class="text-sm font-medium uppercase" id="currentLanguage">{{ LANGUAGE_CODE|default:'en' }}</span>
+                        <span class="text-sm font-medium uppercase" id="currentLanguage">{{ request.LANGUAGE_CODE|default:'en' }}</span>
                         <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="languageChevron"></i>
                     </div>
                     <div id="languageDropdown" class="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl border border-gray-200 py-2 hidden z-50">
@@ -287,7 +287,7 @@
             © 2025 {{ site_settings.site_name|default:"EthioSites" }}
         </div> -->
         <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 text-center text-lg text-gray-500">
-            &copy; **{% now "Y" %}** {{ site_settings.site_name|default:"EthioSites" }}
+            &copy; {% now "Y" %} {{ site_settings.site_name|default:"EthioSites" }}
         </div>
     </div>
 
@@ -518,10 +518,13 @@
             // Send AJAX request to track the click
             fetch(`/track/card-click/${cardId}/`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({})
             }).then(response => {
                 if (response.ok) {
                     // Redirect to the original URL after tracking
@@ -547,10 +550,13 @@
             // Send AJAX request to track the click
             fetch(`/track/hero-cta-click/${heroId}/`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({})
             }).then(response => {
                 if (response.ok) {
                     // Redirect to the original URL after tracking
