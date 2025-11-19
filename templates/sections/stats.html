@@ -1,0 +1,56 @@
+{% load icon_filters %}
+<div class="stats-section py-16">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-16">
+      {% if section.name %}
+      <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: {{ section.section_text_color|default:'#1f2937' }};">
+        {{ section.name }}
+      </h2>
+      {% endif %}
+      
+      {% if section.description %}
+      <div class="text-lg max-w-3xl mx-auto ck-content" style="color: {{ section.section_text_color|default:'#4b5563' }};">
+        {{ section.description|safe }}
+      </div>
+      {% endif %}
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-{{ section.columns|default:4 }} gap-8">
+      {% for card in section.card_block.all %}
+      {% if card.is_active %}
+      <div class="text-center p-6 rounded-xl shadow-lg" 
+           style="background-color: {{ card.card_bg_color|default:'#ffffff' }}; color: {{ card.card_text_color|default:'#1f2937' }};">
+        {% if card.icon %}
+        <div class="flex justify-center mb-4">
+          <i data-lucide="{{ card.icon|to_kebab_case }}"
+             style="width:{{ card.icon_size|default:48 }}px;height:{{ card.icon_size|default:48 }}px;color:{{ card.icon_color|default:'#3b82f6' }};">
+          </i>
+        </div>
+        {% endif %}
+        
+        <div class="text-4xl font-bold mb-2" style="color: {{ card.card_text_color|default:'#1f2937' }};">
+          {{ card.title }}
+        </div>
+        
+        {% if card.text %}
+        <div class="ck-content" style="color: {{ card.card_text_color|default:'#4b5563' }};">
+          {{ card.text|safe }}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    
+    {% if section.cta_label and section.cta_url %}
+    <div class="mt-12 text-center">
+        <a href="{{ section.cta_url }}" 
+           target="{{ section.cta_target|default:'_self' }}"
+           class="inline-block px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
+           style="background-color: {{ section.cta_bg_color|default:'#3b82f6' }}; color: {{ section.cta_text_color|default:'white' }};">
+            {{ section.cta_label }}
+        </a>
+    </div>
+    {% endif %}
+  </div>
+</div>

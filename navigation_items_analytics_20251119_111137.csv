@@ -1,0 +1,6 @@
+id,label,url,is_active,is_dropdown,is_button,click_count,dropdown_item_count,created_at,updated_at
+1,Our Mission,mission,True,False,False,0,0,2025-11-19 11:11:15.524430+00:00,2025-11-19 11:11:15.528152+00:00
+7,For Leaders,leaders,True,False,False,0,0,2025-11-19 11:11:15.524430+00:00,2025-11-19 11:11:15.528152+00:00
+2,Show Case,show-case,True,False,False,0,0,2025-11-19 11:11:15.524430+00:00,2025-11-19 11:11:15.528152+00:00
+4,Insights,,True,True,False,0,3,2025-11-19 11:11:15.524430+00:00,2025-11-19 11:11:15.528152+00:00
+8,Access Portal,,True,True,True,0,2,2025-11-19 11:11:15.524430+00:00,2025-11-19 11:11:15.528152+00:00

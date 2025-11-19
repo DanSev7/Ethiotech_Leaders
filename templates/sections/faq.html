@@ -1,0 +1,81 @@
+{% load icon_filters %}
+<div class="faq-section py-16">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col lg:flex-row gap-12">
+      <!-- Left Column: Title and Description -->
+      <div class="lg:w-1/3">
+        <div class="sticky top-8">
+          {% if section.name %}
+          <h2 class="text-3xl md:text-4xl font-bold mb-6" style="color: {{ section.section_text_color|default:'#1f2937' }};">
+            {{ section.name }}
+          </h2>
+          {% endif %}
+          
+          {% if section.description %}
+          <div class="text-lg ck-content" style="color: {{ section.section_text_color|default:'#4b5563' }};">
+            {{ section.description|safe }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Right Column: FAQ Items -->
+      <div class="lg:w-2/3">
+        <div class="space-y-6">
+          {% for card in section.card_block.all %}
+          {% if card.is_active %}
+          <div class="rounded-xl shadow-lg overflow-hidden" 
+               style="background-color: {{ card.card_bg_color|default:'#ffffff' }}; color: {{ card.card_text_color|default:'#1f2937' }};">
+            <div class="p-6 border-b" 
+                 style="border-color: {{ card.button_color|default:'#e5e7eb' }};">
+              <div class="flex justify-between items-center cursor-pointer" onclick="toggleFAQ(this)">
+                <h3 class="text-xl font-semibold" style="color: {{ card.card_text_color|default:'#1f2937' }};">
+                  {{ card.title }}
+                </h3>
+                <i data-lucide="chevron-down" 
+                   style="width:24px;height:24px;color:{{ card.icon_color|default:'#3b82f6' }};">
+                </i>
+              </div>
+            </div>
+            <div class="p-6 ck-content" style="display: none; color: {{ card.card_text_color|default:'#4b5563' }};">
+              {{ card.text|safe }}
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    {% if section.cta_label and section.cta_url %}
+    <div class="mt-12 text-center">
+        <a href="{{ section.cta_url }}" 
+           target="{{ section.cta_target|default:'_self' }}"
+           class="inline-block px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
+           style="background-color: {{ section.cta_bg_color|default:'#3b82f6' }}; color: {{ section.cta_text_color|default:'white' }};">
+            {{ section.cta_label }}
+        </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function toggleFAQ(element) {
+  const content = element.nextElementSibling;
+  const icon = element.querySelector('i[data-lucide="chevron-down"]');
+  
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    icon.setAttribute('data-lucide', 'chevron-up');
+  } else {
+    content.style.display = 'none';
+    icon.setAttribute('data-lucide', 'chevron-down');
+  }
+  
+  // Re-initialize Lucide icons to update the displayed icon
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+}
+</script>

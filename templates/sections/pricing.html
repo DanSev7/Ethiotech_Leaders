@@ -1,0 +1,75 @@
+{% load icon_filters %}
+<div class="pricing-section py-16">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-16">
+      {% if section.name %}
+      <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: {{ section.section_text_color|default:'#1f2937' }};">
+        {{ section.name }}
+      </h2>
+      {% endif %}
+      
+      {% if section.description %}
+      <div class="text-lg max-w-3xl mx-auto ck-content" style="color: {{ section.section_text_color|default:'#4b5563' }};">
+        {{ section.description|safe }}
+      </div>
+      {% endif %}
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-{{ section.columns|default:3 }} gap-{{ section.card_gap|default:'8' }}">
+      {% for card in section.card_block.all %}
+      {% if card.is_active %}
+      <div class="p-8 rounded-xl shadow-lg text-center relative overflow-hidden" 
+           style="background-color: {{ card.card_bg_color|default:'#ffffff' }}; color: {{ card.card_text_color|default:'#1f2937' }};">
+        
+        {% if card.button_label %}
+        <div class="absolute top-0 right-0 bg-{{ card.button_color|default:'#3b82f6' }} text-white px-6 py-2 transform rotate-45 translate-x-8 -translate-y-2" 
+             style="background-color: {{ card.button_color|default:'#3b82f6' }};">
+          <span class="text-sm font-bold">{{ card.button_label }}</span>
+        </div>
+        {% endif %}
+        
+        <h3 class="text-2xl font-semibold mb-4" style="color: {{ card.card_text_color|default:'#1f2937' }};">
+          {{ card.title }}
+        </h3>
+        
+        {% if card.icon %}
+        <div class="mb-6">
+          <i data-lucide="{{ card.icon|to_kebab_case }}"
+             style="width:{{ card.icon_size|default:48 }}px;height:{{ card.icon_size|default:48 }}px;color:{{ card.icon_color|default:'#3b82f6' }};">
+          </i>
+        </div>
+        {% endif %}
+        
+        {% if card.text %}
+        <div class="ck-content mb-8" style="color: {{ card.card_text_color|default:'#4b5563' }};">
+          {{ card.text|safe }}
+        </div>
+        {% endif %}
+        
+        {% if card.button_url and card.button_label %}
+        <div class="mt-8">
+          <a href="{{ card.button_url }}" 
+             target="{{ card.button_target|default:'_self' }}"
+             class="inline-block w-full py-3 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg"
+             style="background-color: {{ card.button_color|default:'#3b82f6' }}; color: {{ card.button_text_color|default:'white' }};">
+            {{ card.button_label }}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    
+    {% if section.cta_label and section.cta_url %}
+    <div class="mt-12 text-center">
+        <a href="{{ section.cta_url }}" 
+           target="{{ section.cta_target|default:'_self' }}"
+           class="inline-block px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
+           style="background-color: {{ section.cta_bg_color|default:'#3b82f6' }}; color: {{ section.cta_text_color|default:'white' }};">
+            {{ section.cta_label }}
+        </a>
+    </div>
+    {% endif %}
+  </div>
+</div>

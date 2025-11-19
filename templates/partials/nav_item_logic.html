@@ -1,0 +1,44 @@
+{% load icon_filters %}
+
+{% with header_text_color=site_settings.header_text_color %}
+{% if nav_item.is_dropdown %}
+    <div class="nav-dropdown">
+        {% if nav_item.is_button %}
+            <a href="{% if nav_item.button_url %}{{ nav_item.button_url }}{% else %}{% if nav_item.url %}{{ nav_item.url }}{% else %}#{% endif %}{% endif %}" 
+               target="{{ nav_item.button_target|default:'_self' }}"
+               class="px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 hover:opacity-90 shadow-md"
+               style="background-color: {{ nav_item.button_color }}; color: {{ nav_item.button_text_color }};">
+                {{ nav_item.button_label|default:nav_item.label }}
+                <i data-lucide="chevron-down" style="width:16px;height:16px;"></i>
+            </a>
+        {% else %}
+            <a href="{% if nav_item.url %}{{ nav_item.url }}{% else %}#{% endif %}" 
+               class="font-medium flex items-center gap-1 hover:text-blue-600" 
+               style="color: {{ header_text_color|default:'#1f2937' }};">
+                {{ nav_item.label }}
+                <i data-lucide="chevron-down" style="width:16px;height:16px;"></i>
+            </a>
+        {% endif %}
+        {% if nav_item.dropdown_items.all %}
+            <div class="nav-dropdown-content text-left">
+                {% for dropdown_item in nav_item.dropdown_items.all %}
+                <a href="{{ dropdown_item.url }}">{{ dropdown_item.label }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% elif nav_item.is_button %}
+    <a href="{{ nav_item.button_url }}" 
+       target="{{ nav_item.button_target|default:'_self' }}"
+       class="px-4 py-2 rounded-lg font-semibold transition-all hover:opacity-90 shadow-md"
+       style="background-color: {{ nav_item.button_color }}; color: {{ nav_item.button_text_color }};">
+        {{ nav_item.button_label|default:nav_item.label }}
+    </a>
+{% else %}
+    <a href="{% if nav_item.url %}{{ nav_item.url }}{% else %}#{% endif %}" 
+       class="font-medium hover:text-blue-600" 
+       style="color: {{ header_text_color|default:'#1f2937' }};">
+        {{ nav_item.label }}
+    </a>
+{% endif %}
+{% endwith %}

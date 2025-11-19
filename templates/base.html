@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+{% load icon_filters %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_settings.site_name|default:"EthioSites" }}{% endblock %}</title>
+    {% if site_settings and site_settings.favicon %}
+    <link rel="icon" type="image/png" href="{{ site_settings.favicon.url }}">
+    {% endif %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@0.446.0/dist/umd/lucide.js" defer></script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      
+      /* CKEditor content styling */
+      .ck-content {
+        line-height: 1.6;
+      }
+      .ck-content .text-small { font-size: .875em; }
+      .ck-content .text-big { font-size: 1.4em; }
+      .ck-content .text-huge { font-size: 1.8em; }
+      .ck-content *[class*='text-'] { line-height: 1.5; }
+      .ck-content span[style*='color:'], .ck-content span[style*='background-color:'], .ck-content span[style*='font-family:'] {
+        color: revert !important;
+        background-color: revert !important;
+        font-family: revert !important;
+      }
+      .ck-content ul { list-style-type: disc; padding-left: 1.5rem; margin: 1rem 0; }
+      .ck-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: 1rem 0; }
+      .ck-content li { margin-bottom: 0.25rem; }
+      .ck-content a { text-decoration: underline; }
+      .ck-content a:hover { text-decoration: none; }
+      .ck-content h1, .ck-content h2, .ck-content h3 { margin: 1.5rem 0 1rem; }
+      .ck-content p { margin-bottom: 1rem; }
+
+      /* Media embed */
+      .ck-content .media, .ck-content div[data-oembed-url] {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        margin: 1rem 0;
+      }
+      .ck-content .media iframe, .ck-content div[data-oembed-url] iframe,
+      .ck-content .media video, .ck-content div[data-oembed-url] video {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+      }
+
+      /* Desktop dropdown */
+      .nav-dropdown { position: relative; }
+      .nav-dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        min-width: 200px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        z-index: 1000;
+        margin-top: 8px;
+        overflow: hidden;
+      }
+      .nav-dropdown:hover .nav-dropdown-content { display: block; }
+      .nav-dropdown-content a {
+        display: block;
+        padding: 12px 16px;
+        color: #333;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+      .nav-dropdown-content a:hover { background: #f7f7f7; }
+
+      /* Mobile menu - hidden by default on large screens */
+      @media (max-width: 768px) {
+        .desktop-nav { display: none !important; }
+        .mobile-menu-toggle { display: block; }
+      }
+      @media (min-width: 769px) {
+        .mobile-menu-toggle { display: none !important; }
+      }
+
+      /* Desktop Navigation Dropdowns */
+      .nav-dropdown {
+        position: relative;
+      }
+      
+      .nav-dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border-radius: 0.5rem;
+        z-index: 100;
+        padding: 0.5rem 0;
+      }
+      
+      .nav-dropdown-content a {
+        display: block;
+        padding: 0.75rem 1rem;
+        color: #374151;
+        text-decoration: none;
+        transition: background-color 0.2s;
+      }
+      
+      .nav-dropdown-content a:hover {
+        background-color: #f3f4f6;
+      }
+      
+      .nav-dropdown-content:not(.hidden) {
+        display: block;
+      }
+      
+      /* Chevron rotation for mobile dropdowns */
+      .chevron-rotate {
+        transition: transform 0.3s ease;
+      }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+
+    <header class="shadow-sm border-b border-gray-200" style="background-color: {{ site_settings.header_bg_color|default:'#ffffff' }}; color: {{ site_settings.header_text_color|default:'#000000' }};">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <!-- Logo & Site Name -->
+            <a href="{% url 'home' %}" class="flex items-center gap-3 no-underline">
+                {% if site_settings and site_settings.logo %}
+                <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}" class="h-10 w-auto object-contain">
+                {% endif %}
+                <div class="flex items-center gap-2">
+                    {% if site_settings and site_settings.logo_text %}
+                    <span style="color: {{ site_settings.header_text_color|default:'#000000' }};">{{ site_settings.logo_text }}</span>
+                    {% endif %}
+                    <h1 class="text-xl font-bold" style="color: {{ site_settings.header_text_color|default:'#000000' }};">
+                        {{ site_settings.site_name|default:"EthioSites" }}
+                    </h1>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="desktop-nav flex items-center gap-6">
+                {% if navigation_items %}
+                    {% for nav_item in navigation_items %}
+                        {% if nav_item.is_dropdown %}
+                            <div class="nav-dropdown" onclick="toggleDesktopDropdown(this)">
+                                {% if nav_item.is_button %}
+                                    <a href="{% if nav_item.button_url %}{{ nav_item.button_url }}{% else %}{{ nav_item.url|default:'#' }}{% endif %}"
+                                       target="{{ nav_item.button_target|default:'_self' }}"
+                                       class="px-5 py-2.5 rounded-lg font-medium flex items-center gap-1 transition-opacity hover:opacity-90"
+                                       style="background-color: {{ nav_item.button_color }}; color: {{ nav_item.button_text_color }};">
+                                        {{ nav_item.button_label|default:nav_item.label }}
+                                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% if nav_item.url and nav_item.url != '#' %}{% url 'navigation_page_by_url' nav_url=nav_item.url %}{% else %}{% url 'navigation_page' nav_id=nav_item.id %}{% endif %}" class="font-medium flex items-center gap-1 hover:opacity-80 transition">
+                                        {{ nav_item.label }}
+                                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                    </a>
+                                {% endif %}
+
+                                {% if nav_item.dropdown_items.all %}
+                                <div class="nav-dropdown-content hidden">
+                                    {% for dropdown_item in nav_item.dropdown_items.all %}
+                                    <a href="{{ dropdown_item.url }}"
+                                       onclick="trackNavigationClick({{ dropdown_item.id }})">
+                                        {{ dropdown_item.label }}
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                        {% elif nav_item.is_button %}
+                            <a href="{{ nav_item.button_url }}" target="{{ nav_item.button_target|default:'_self' }}"
+                               class="px-5 py-2.5 rounded-lg font-medium transition-opacity hover:opacity-90"
+                               style="background-color: {{ nav_item.button_color }}; color: {{ nav_item.button_text_color }};">
+                                {{ nav_item.button_label|default:nav_item.label }}
+                            </a>
+                        {% else %}
+                            <a href="{% if nav_item.url and nav_item.url != '#' %}{% url 'navigation_page_by_url' nav_url=nav_item.url %}{% else %}{% url 'navigation_page' nav_id=nav_item.id %}{% endif %}" class="font-medium hover:opacity-80 transition"
+                               onclick="trackNavigationClick({{ nav_item.id }})">
+                                {{ nav_item.label }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </nav>
+
+            <!-- Mobile Menu Toggle -->
+            <div class="flex items-center gap-4">
+                <!-- Language Switcher -->
+                <div class="relative group">
+                    <div class="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 cursor-pointer hover:bg-white/30 transition-all duration-300" 
+                         onclick="toggleLanguageDropdown()">
+                        <i data-lucide="globe" class="w-4 h-4"></i>
+                        <span class="text-sm font-medium uppercase" id="currentLanguage">{{ LANGUAGE_CODE|default:'en' }}</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" id="languageChevron"></i>
+                    </div>
+                    <div id="languageDropdown" class="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl border border-gray-200 py-2 hidden z-50">
+                        <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 transition-colors" onclick="changeLanguage('en')">
+                            <span>🇺🇸</span>
+                            <span>English</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 transition-colors" onclick="changeLanguage('am')">
+                            <span>🇪🇹</span>
+                            <span>አማርኛ</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <button class="mobile-menu-toggle text-3xl transition-transform hover:scale-110"
+                        style="color: {{ site_settings.header_text_color|default:'#000000' }};"
+                        onclick="openMobileMenu()">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Backdrop -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="closeMobileMenu()"></div>
+
+    <!-- Mobile Menu Drawer -->
+    <div id="mobileMenuDrawer" class="fixed top-0 right-0 h-full w-80 max-w-full bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 no-underline">
+                {% if site_settings and site_settings.logo %}
+                <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}" class="h-9 w-auto object-contain">
+                {% endif %}
+                <span class="font-bold text-lg">{{ site_settings.site_name|default:"EthioSites" }}</span>
+            </a>
+            <button onclick="closeMobileMenu()" class="text-gray-500 hover:text-gray-900 transition p-1">
+                <i data-lucide="x" class="w-7 h-7"></i>
+            </button>
+        </div>
+
+        <nav class="p-4">
+            {% if navigation_items %}
+                {% for nav_item in navigation_items %}
+                    <div class="mb-1">
+                        {% if nav_item.is_dropdown %}
+                            <!-- Dropdown Trigger -->
+                            <button onclick="toggleMobileDropdown(this)"
+                                    class="w-full text-left py-4 px-5 flex justify-between items-center hover:bg-gray-50 rounded-lg transition font-medium text-gray-800">
+                                <span>{{ nav_item.button_label|default:nav_item.label }}</span>
+                                <i data-lucide="chevron-down" class="w-5 h-5 chevron-rotate"></i>
+                            </button>
+
+                            <!-- Dropdown Items -->
+                            <div class="hidden bg-gray-50 rounded-lg mt-1 mx-4 overflow-hidden border border-gray-200">
+                                {% for dropdown_item in nav_item.dropdown_items.all %}
+                                <a href="{% if dropdown_item.url and dropdown_item.url != '#' %}{% url 'navigation_page_by_url' nav_url=dropdown_item.url %}{% else %}{% url 'navigation_page' nav_id=dropdown_item.id %}{% endif %}"
+                                   class="block py-3.5 px-6 text-gray-700 hover:bg-gray-200 transition border-b border-gray-200 last:border-0"
+                                   onclick="trackNavigationClick({{ dropdown_item.id }})">
+                                    {{ dropdown_item.label }}
+                                </a>
+                                {% endfor %}
+                            </div>
+
+                        {% elif nav_item.is_button %}
+                            <a href="{% if nav_item.url and nav_item.url != '#' %}{% url 'navigation_page_by_url' nav_url=nav_item.url %}{% else %}{% url 'navigation_page' nav_id=nav_item.id %}{% endif %}"
+                               class="block w-full text-left py-4 px-5 my-2 rounded-lg font-medium transition hover:opacity-90"
+                               style="background-color: {{ nav_item.button_color }}; color: {{ nav_item.button_text_color }};"
+                               onclick="trackNavigationClick({{ nav_item.id }})">
+                                {{ nav_item.button_label|default:nav_item.label }}
+                            </a>
+                        {% else %}
+                            <a href="{% if nav_item.url and nav_item.url != '#' %}{% url 'navigation_page_by_url' nav_url=nav_item.url %}{% else %}{% url 'navigation_page' nav_id=nav_item.id %}{% endif %}"
+                               class="block py-4 px-5 hover:bg-gray-50 rounded-lg transition font-medium text-gray-800"
+                               onclick="trackNavigationClick({{ nav_item.id }})">
+                                {{ nav_item.label }}
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </nav>
+
+        <!-- <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 text-center text-sm text-gray-500">
+            © 2025 {{ site_settings.site_name|default:"EthioSites" }}
+        </div> -->
+        <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 text-center text-lg text-gray-500">
+            &copy; **{% now "Y" %}** {{ site_settings.site_name|default:"EthioSites" }}
+        </div>
+    </div>
+
+    <main>{% block content %}{% endblock %}</main>
+    <hr class="color-gray-600 "/>
+    <!-- Dynamic Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+                <!-- Column 1: Logo, Slogan, Description, Social Media -->
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        {% if site_settings and site_settings.logo %}
+                        <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}" class="h-10 w-auto object-contain">
+                        {% endif %}
+                        <h3 class="text-xl font-bold">{{ site_settings.site_name|default:"EthioSites" }}</h3>
+                    </div>
+                    {% if site_settings and site_settings.logo_text %}
+                    <p class="text-gray-300 mb-4">{{ site_settings.logo_text }}</p>
+                    {% endif %}
+                    {% if footer %}
+                    <p class="text-gray-400 text-sm mb-4">{{ footer.description|safe }}</p>
+                    {% else %}
+                    <p class="text-gray-400 text-sm mb-4">{{ site_settings.description|safe }}</p>
+                    {% endif %}
+                    
+                    <!-- Social Media Links -->
+                    <div class="flex gap-4 mt-4">
+                        <a href="{% if footer and footer.facebook_url %}{{ footer.facebook_url }}{% elif site_settings.facebook_url %}{{ site_settings.facebook_url }}{% else %}#{% endif %}" 
+                           class="text-gray-400 hover:text-white transition-colors" 
+                           target="_blank"
+                           {% if not footer.facebook_url and not site_settings.facebook_url %}onclick="return false;"{% endif %}>
+                            <i data-lucide="facebook" class="w-5 h-5"></i>
+                        </a>
+                        <a href="{% if footer and footer.twitter_url %}{{ footer.twitter_url }}{% elif site_settings.twitter_url %}{{ site_settings.twitter_url }}{% else %}#{% endif %}" 
+                           class="text-gray-400 hover:text-white transition-colors" 
+                           target="_blank"
+                           {% if not footer.twitter_url and not site_settings.twitter_url %}onclick="return false;"{% endif %}>
+                            <i data-lucide="twitter" class="w-5 h-5"></i>
+                        </a>
+                        <a href="{% if footer and footer.instagram_url %}{{ footer.instagram_url }}{% elif site_settings.instagram_url %}{{ site_settings.instagram_url }}{% else %}#{% endif %}" 
+                           class="text-gray-400 hover:text-white transition-colors" 
+                           target="_blank"
+                           {% if not footer.instagram_url and not site_settings.instagram_url %}onclick="return false;"{% endif %}>
+                            <i data-lucide="instagram" class="w-5 h-5"></i>
+                        </a>
+                        <a href="{% if footer and footer.linkedin_url %}{{ footer.linkedin_url }}{% elif site_settings.linkedin_url %}{{ site_settings.linkedin_url }}{% else %}#{% endif %}" 
+                           class="text-gray-400 hover:text-white transition-colors" 
+                           target="_blank"
+                           {% if not footer.linkedin_url and not site_settings.linkedin_url %}onclick="return false;"{% endif %}>
+                            <i data-lucide="linkedin" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Column 2: Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-6">Quick Links</h4>
+                    <ul class="space-y-3">
+                        {% if navigation_items %}
+                            {% for nav_item in navigation_items %}
+                            <li>
+                                <a href="{% url 'navigation_page' nav_id=nav_item.id %}" class="text-gray-400 hover:text-white transition-colors">
+                                    {{ nav_item.label }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Services</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Column 3: Contact Information -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-6">Contact Us</h4>
+                    <ul class="space-y-4 text-gray-400">
+                        {% if footer and footer.address %}
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0"></i>
+                            <span>{{ footer.address }}</span>
+                        </li>
+                        {% elif site_settings.address %}
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="map-pin" class="w-5 h-5 mt-0.5 flex-shrink-0"></i>
+                            <span>{{ site_settings.address }}</span>
+                        </li>
+                        {% endif %}
+                        {% if footer and footer.phone %}
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="phone" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>{{ footer.phone }}</span>
+                        </li>
+                        {% elif site_settings.phone %}
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="phone" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>{{ site_settings.phone }}</span>
+                        </li>
+                        {% endif %}
+                        {% if footer and footer.email %}
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="mail" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>{{ footer.email }}</span>
+                        </li>
+                        {% elif site_settings.email %}
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="mail" class="w-5 h-5 flex-shrink-0"></i>
+                            <span>{{ site_settings.email }}</span>
+                        </li>
+                        {% endif %}
+                        {% if footer and footer.opening_hours %}
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="clock" class="w-5 h-5 mt-0.5 flex-shrink-0"></i>
+                            <span>{{ footer.opening_hours|safe }}</span>
+                        </li>
+                        {% elif site_settings.opening_hours %}
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="clock" class="w-5 h-5 mt-0.5 flex-shrink-0"></i>
+                            <span>{{ site_settings.opening_hours|safe }}</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
+                <p>© {% now "Y" %} {{ site_settings.site_name|default:"EthioSites" }}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Functions
+        function openMobileMenu() {
+            document.getElementById('mobileMenuOverlay').classList.remove('hidden');
+            document.getElementById('mobileMenuDrawer').classList.remove('translate-x-full');
+            setTimeout(() => lucide.createIcons(), 350);
+        }
+
+        function closeMobileMenu() {
+            document.getElementById('mobileMenuOverlay').classList.add('hidden');
+            document.getElementById('mobileMenuDrawer').classList.add('translate-x-full');
+        }
+
+        function toggleMobileDropdown(btn) {
+            const dropdown = btn.nextElementSibling;
+            const chevron = btn.querySelector('i[data-lucide="chevron-down"]');
+            dropdown.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+        
+        // Desktop Dropdown Functions
+        function toggleDesktopDropdown(element) {
+            const dropdown = element.querySelector('.nav-dropdown-content');
+            const chevron = element.querySelector('i[data-lucide="chevron-down"]');
+            dropdown.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+        
+        // Close desktop dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            // Close all desktop dropdowns
+            document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+                if (!dropdown.contains(e.target)) {
+                    const content = dropdown.querySelector('.nav-dropdown-content');
+                    const chevron = dropdown.querySelector('i[data-lucide="chevron-down"]');
+                    if (content && !content.classList.contains('hidden')) {
+                        content.classList.add('hidden');
+                        if (chevron) {
+                            chevron.classList.remove('rotate-180');
+                        }
+                    }
+                }
+            });
+            
+            // Language dropdown handling
+            const languageDropdown = document.getElementById('languageDropdown');
+            const languageSwitcher = document.querySelector('.relative.group');
+            if (languageDropdown && !languageSwitcher.contains(e.target)) {
+                languageDropdown.classList.add('hidden');
+                document.getElementById('languageChevron').classList.remove('rotate-180');
+            }
+        });
+        
+        // Language Switching Functions
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('languageDropdown');
+            const chevron = document.getElementById('languageChevron');
+            dropdown.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+        
+        function changeLanguage(lang) {
+            // Get current URL
+            const url = new URL(window.location);
+            // Set the language parameter
+            url.searchParams.set('lang', lang);
+            // Reload the page with the new language
+            window.location.href = url.toString();
+        }
+
+        // Close menu on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeMobileMenu();
+        });
+
+        // Initialize Lucide icons
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+        });
+        
+        // Track Navigation Click
+        function trackNavigationClick(navId) {
+            // In a real implementation, you would send an AJAX request to track the click
+            // For now, we'll just increment the counter on the server side
+            console.log('Navigation item clicked for ID: ' + navId);
+        }
+        
+        // Track Card CTA Click
+        function trackCardClick(cardId, event) {
+            event.preventDefault();
+            const link = event.target.closest('a');
+            const url = link ? link.href : '#';
+            
+            // Send AJAX request to track the click
+            fetch(`/track/card-click/${cardId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    // Redirect to the original URL after tracking
+                    if (url !== '#') {
+                        window.location.href = url;
+                    }
+                }
+            }).catch(error => {
+                console.error('Error tracking click:', error);
+                // Redirect anyway if tracking fails
+                if (url !== '#') {
+                    window.location.href = url;
+                }
+            });
+        }
+        
+        // Track Hero CTA Click
+        function trackHeroCtaClick(heroId, event) {
+            event.preventDefault();
+            const link = event.target.closest('a');
+            const url = link ? link.href : '#';
+            
+            // Send AJAX request to track the click
+            fetch(`/track/hero-cta-click/${heroId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    // Redirect to the original URL after tracking
+                    if (url !== '#') {
+                        window.location.href = url;
+                    }
+                }
+            }).catch(error => {
+                console.error('Error tracking click:', error);
+                // Redirect anyway if tracking fails
+                if (url !== '#') {
+                    window.location.href = url;
+                }
+            });
+        }
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
