@@ -1,15 +1,15 @@
 {% load icon_filters %}
-<div class="testimonials-section py-16">
+<div class="testimonials-section py-16" style="background-color: #0f172b;">
   <div class="container mx-auto px-4">
     <div class="text-center mb-16">
       {% if section.name %}
-      <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: {{ section.section_text_color|default:'#1f2937' }};">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">
         {{ section.name }}
       </h2>
       {% endif %}
       
       {% if section.description %}
-      <div class="text-lg max-w-3xl mx-auto ck-content" style="color: {{ section.section_text_color|default:'#4b5563' }};">
+      <div class="text-lg max-w-3xl mx-auto ck-content text-gray-300">
         {{ section.description|safe }}
       </div>
       {% endif %}
@@ -23,34 +23,27 @@
           {% if card.is_active %}
           <div class="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 px-4">
             <div class="p-8 rounded-xl shadow-lg h-full" 
-                 style="background-color: {{ card.card_bg_color|default:'#ffffff' }}; color: {{ card.card_text_color|default:'#1f2937' }};">
-              
-              {% if card.icon %}
-              <div class="mb-4">
-                <i data-lucide="{{ card.icon|to_kebab_case }}"
-                   style="width:{{ card.icon_size|default:24 }}px;height:{{ card.icon_size|default:24 }}px;color:{{ card.icon_color|default:'#3b82f6' }};">
-                </i>
+                 style="background-color: #1d293b;">
+              <div class="mb-4 flex justify-center">
+                <i data-lucide="quote" class="w-8 h-8" style="color: #09b6d4;"></i>
               </div>
-              {% endif %}
               
               {% if card.text %}
-              <div class="ck-content mb-6 italic" style="color: {{ card.card_text_color|default:'#4b5563' }};">
+              <div class="ck-content mb-6 italic text-center text-gray-300">
                 {{ card.text|safe }}
               </div>
               {% endif %}
               
-              <div class="flex items-center">
+              <div class="flex items-center justify-center">
                 {% if card.image %}
-                <img src="{{ card.image.url }}" alt="{{ card.image_alt|default:card.title }}" class="w-12 h-12 rounded-full mr-4">
+                <img src="{{ card.image.url }}" alt="{{ card.image_alt|default:card.title }}" class="w-16 h-16 rounded-full mr-4 object-cover">
                 {% endif %}
                 <div>
-                  <div class="font-semibold" style="color: {{ card.card_text_color|default:'#1f2937' }};">
-                    {{ card.title }}
-                  </div>
-                  {% if card.button_label %}
-                  <div class="text-sm" style="color: {{ card.card_text_color|default:'#6b7280' }};">
-                    {{ card.button_label }}
-                  </div>
+                  {% if card.title %}
+                  <div class="font-semibold text-white">{{ card.title }}</div>
+                  {% endif %}
+                  {% if card.cta_label %}
+                  <div class="text-sm text-cyan-400">{{ card.cta_label }}</div>
                   {% endif %}
                 </div>
               </div>
@@ -62,11 +55,11 @@
       </div>
       
       <!-- Navigation Arrows -->
-      <button id="prevTestimonial" class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-6 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition">
-        <i data-lucide="chevron-left" class="w-6 h-6 text-gray-700"></i>
+      <button id="prevTestimonial" class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-6 bg-cyan-500 rounded-full p-3 shadow-lg hover:bg-cyan-600 transition">
+        <i data-lucide="chevron-left" class="w-6 h-6 text-white"></i>
       </button>
-      <button id="nextTestimonial" class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-6 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition">
-        <i data-lucide="chevron-right" class="w-6 h-6 text-gray-700"></i>
+      <button id="nextTestimonial" class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-6 bg-cyan-500 rounded-full p-3 shadow-lg hover:bg-cyan-600 transition">
+        <i data-lucide="chevron-right" class="w-6 h-6 text-white"></i>
       </button>
       
       <!-- Dots Indicator -->
@@ -80,7 +73,7 @@
         <a href="{{ section.cta_url }}" 
            target="{{ section.cta_target|default:'_self' }}"
            class="inline-block px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
-           style="background-color: {{ section.cta_bg_color|default:'#3b82f6' }}; color: {{ section.cta_text_color|default:'white' }};">
+           style="background-color: #09b6d4; color: white;">
             {{ section.cta_label }}
         </a>
     </div>
@@ -98,46 +91,60 @@ document.addEventListener('DOMContentLoaded', function() {
   if (carousel && prevBtn && nextBtn) {
     const cards = carousel.children;
     const cardCount = cards.length;
-    const cardWidth = cards[0].offsetWidth;
     let currentIndex = 0;
     
+    // Show 3 cards at a time on large screens, 2 on medium, 1 on small
+    function getVisibleCards() {
+      if (window.innerWidth >= 1024) return 3;
+      if (window.innerWidth >= 768) return 2;
+      return 1;
+    }
+    
+    let visibleCards = getVisibleCards();
+    
     // Create dots
-    if (dotsContainer) {
-      for (let i = 0; i < cardCount; i++) {
+    if (dotsContainer && cardCount > 0) {
+      const dotCount = Math.ceil(cardCount / visibleCards);
+      for (let i = 0; i < dotCount; i++) {
         const dot = document.createElement('button');
-        dot.className = 'w-3 h-3 rounded-full bg-gray-300 hover:bg-gray-400 transition';
+        dot.className = 'w-3 h-3 rounded-full bg-gray-600 hover:bg-gray-400 transition';
         dot.dataset.index = i;
-        if (i === 0) dot.classList.add('bg-blue-500');
+        if (i === 0) dot.classList.add('bg-cyan-500');
         dot.addEventListener('click', () => goToSlide(i));
         dotsContainer.appendChild(dot);
       }
     }
     
     function updateCarousel() {
+      const cardWidth = cards[0].offsetWidth + 32; // width + padding
       carousel.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
       
       // Update dots
       if (dotsContainer) {
         const dots = dotsContainer.children;
+        const activeDot = Math.floor(currentIndex / visibleCards);
         for (let i = 0; i < dots.length; i++) {
-          dots[i].classList.toggle('bg-blue-500', i === currentIndex);
-          dots[i].classList.toggle('bg-gray-300', i !== currentIndex);
+          dots[i].classList.toggle('bg-cyan-500', i === activeDot);
+          dots[i].classList.toggle('bg-gray-600', i !== activeDot);
         }
       }
     }
     
     function goToSlide(index) {
-      currentIndex = index;
+      currentIndex = index * visibleCards;
+      if (currentIndex >= cardCount) currentIndex = 0;
       updateCarousel();
     }
     
     function nextSlide() {
-      currentIndex = (currentIndex + 1) % cardCount;
+      currentIndex += visibleCards;
+      if (currentIndex >= cardCount) currentIndex = 0;
       updateCarousel();
     }
     
     function prevSlide() {
-      currentIndex = (currentIndex - 1 + cardCount) % cardCount;
+      currentIndex -= visibleCards;
+      if (currentIndex < 0) currentIndex = Math.max(0, cardCount - visibleCards);
       updateCarousel();
     }
     
@@ -146,6 +153,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto slide every 5 seconds
     setInterval(nextSlide, 5000);
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      visibleCards = getVisibleCards();
+      currentIndex = 0;
+      updateCarousel();
+    });
   }
 });
 </script>

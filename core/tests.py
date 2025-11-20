@@ -51,3 +51,21 @@ class HomeViewTests(TestCase):
         session = self.client.session
         self.assertEqual(session[LANGUAGE_SESSION_KEY], 'am')
         self.assertEqual(response.wsgi_request.LANGUAGE_CODE, 'am')
+
+
+class CardBlockPayloadTests(TestCase):
+    def test_payload_accessors(self):
+        section = Section.objects.create(name="Dynamic")
+        card = CardBlock.objects.create(
+            section=section,
+            title="Flexible Card",
+            payload={
+                'role': 'Engineer',
+                'feature_list': ['One', 'Two'],
+                'is_featured': True,
+            }
+        )
+        self.assertTrue(card.has_type_specific_data())
+        self.assertEqual(card.get_payload_value('role'), 'Engineer')
+        self.assertEqual(card.get_payload_list('feature_list'), ['One', 'Two'])
+        self.assertEqual(card.get_payload_value('missing', 'fallback'), 'fallback')

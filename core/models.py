@@ -229,6 +229,7 @@ class CardBlock(models.Model):
     ], default='_self', blank=True)
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    payload = models.JSONField(default=dict, blank=True, help_text="Type-specific data for dynamic card layouts")
     # Content tracking fields
     click_count = models.PositiveIntegerField(default=0, help_text="Number of times CTA link has been clicked")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -249,13 +250,28 @@ class CardBlock(models.Model):
             'has_image': bool(self.image),
             'has_video': bool(self.video_file or self.video_url),
             'has_cta': bool(self.cta_label and self.cta_url),
-            'click_count': self.click_count
+            'click_count': self.click_count,
+            'payload_keys': list((self.payload or {}).keys()),
         }
 
     def increment_click_count(self):
         """Increment the click count for this card's CTA"""
         self.click_count += 1
         self.save(update_fields=['click_count'])
+
+    def get_payload_value(self, key, default=None):
+        if not self.payload:
+            return default
+        return self.payload.get(key, default)
+
+    def get_payload_list(self, key):
+        value = self.get_payload_value(key, [])
+        if isinstance(value, str):
+            value = [item.strip() for item in value.splitlines() if item.strip()]
+        return value or []
+
+    def has_type_specific_data(self):
+        return bool(self.payload)
 
 class Hero(models.Model):
     """Hero section with rotating text and background images."""

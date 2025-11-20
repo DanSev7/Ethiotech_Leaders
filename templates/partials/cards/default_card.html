@@ -1,0 +1,66 @@
+{% load icon_filters %}
+<div class="p-8 rounded-xl shadow-2xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]" 
+     style="background-color: {{ card.card_bg_color|default:'#ffffff' }}; color: {{ card.card_text_color|default:'#1f2937' }};">
+
+    {% if card.icon_layout == 'side-by-side' %}
+        <div class="flex items-center gap-4 mb-4">
+            {% if card.icon %}
+            <div class="flex-shrink-0 flex items-center justify-center" style="width: {{ card.icon_size|default:32 }}px;">
+                <i data-lucide="{{ card.icon|to_kebab_case }}"
+                   style="width:{{ card.icon_size|default:32 }}px;height:{{ card.icon_size|default:32 }}px;color:{{ card.icon_color|default:'#3b82f6' }};">
+                </i>
+            </div>
+            {% endif %}
+            <h3 class="text-2xl font-semibold flex-1">{{ card.title }}</h3>
+        </div>
+    {% elif card.icon_layout == 'top-down-center' %}
+        {% if card.icon %}
+        <div class="mb-4 flex justify-center">
+            <i data-lucide="{{ card.icon|to_kebab_case }}"
+               style="width:{{ card.icon_size|default:40 }}px;height:{{ card.icon_size|default:40 }}px;color:{{ card.icon_color|default:'#3b82f6' }};">
+            </i>
+        </div>
+        {% endif %}
+        <h3 class="text-2xl font-semibold mb-3 text-center">{{ card.title }}</h3>
+    {% else %}
+        {% if card.icon %}
+        <div class="mb-4">
+            <i data-lucide="{{ card.icon|to_kebab_case }}"
+               style="width:{{ card.icon_size|default:40 }}px;height:{{ card.icon_size|default:40 }}px;color:{{ card.icon_color|default:'#3b82f6' }};">
+            </i>
+        </div>
+        {% endif %}
+        <h3 class="text-2xl font-semibold mb-3">{{ card.title }}</h3>
+    {% endif %}
+
+    {% if card.image %}
+    <img src="{{ card.image.url }}" alt="{{ card.image_alt }}" class="w-full h-56 object-cover rounded-lg mb-4 shadow-md">
+    {% endif %}
+
+    {% if card.video_thumbnail %}
+    <div class="relative mb-4">
+        <img src="{{ card.video_thumbnail.url }}" alt="Video thumbnail" class="w-full h-56 object-cover rounded-lg shadow-md">
+        {% if card.video_url %}
+        <a href="{{ card.video_url }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-lg hover:bg-opacity-60 transition group">
+            <i data-lucide="play" class="transition transform group-hover:scale-110" style="width:64px;height:64px;color:white;"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if card.text %}
+    <div class="mt-2 ck-content text-gray-600" style="color: {{ card.card_text_color|default:'#4b5563' }};">{{ card.text|safe }}</div>
+    {% endif %}
+
+    {% if card.cta_label or card.cta_url %}
+    <a href="{{ card.cta_url|default:'#' }}" 
+       target="{{ card.button_target|default:'_self' }}"
+       class="inline-block px-8 py-3 mt-6 rounded-xl text-lg font-medium transition-colors hover:bg-opacity-80 border border-transparent"
+       style="background-color: {{ card.button_color|default:'#3b82f6' }}; color: {{ card.button_text_color|default:'white' }};"
+       {% if not card.cta_url %}onclick="return false;"{% endif %}
+       onclick="trackCardClick({{ card.id }}, event)">
+        {{ card.cta_label|default:'Learn More' }}
+    </a>
+    {% endif %}
+</div>
+

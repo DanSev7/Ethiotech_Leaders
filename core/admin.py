@@ -18,7 +18,7 @@ from .models import (
     SiteSettings, Hero, RotatingTextItem, HeroBackgroundImage,
     Section, CardBlock, NavigationItem, DropdownItem, Footer
 )
-from .section_registry import SECTION_TYPES
+from .section_registry import SECTION_TYPES, get_card_schema
 
 
 # Sites framework is not used in this project
@@ -105,13 +105,108 @@ class CardBlockAdminForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'icon': IconPickerWidget(),
-            # Apply color widget only to specific color fields
             'icon_color': ColorInputWidget(),
             'button_color': ColorInputWidget(),
-            'section_bg_color': ColorInputWidget(), 
-            'section_text_color': ColorInputWidget(),
+            'card_bg_color': ColorInputWidget(),
+            'card_text_color': ColorInputWidget(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dynamic_field_configs = {}
+        self.dynamic_field_names = []
+        self.section_type = self._determine_section_type()
         
+        # Apply field visibility and mappings based on section type
+        from .section_registry import get_card_field_rules, get_field_mapping_for_section_type
+        field_rules = get_card_field_rules(self.section_type)
+        hidden_fields = field_rules.get('hidden_fields', [])
+        field_mappings = field_rules.get('field_mappings', {})
+        
+        # Hide fields that shouldn't be visible for this section type
+        for field_name in hidden_fields:
+            if field_name in self.fields:
+                self.fields[field_name].widget = forms.HiddenInput()
+        
+        # Apply field label and help_text mappings
+        for field_name, mapping in field_mappings.items():
+            if field_name in self.fields:
+                if 'label' in mapping:
+                    self.fields[field_name].label = mapping['label']
+                if 'help_text' in mapping:
+                    self.fields[field_name].help_text = mapping['help_text']
+        
+        # Add dynamic payload fields from schema
+        schema = get_card_schema(self.section_type)
+        self.schema_label = schema.get('label', 'Type-specific Settings')
+        for field_config in schema.get('fields', []):
+            form_field = self._build_dynamic_field(field_config)
+            if not form_field:
+                continue
+            field_name = field_config['name']
+            self.fields[field_name] = form_field
+            self.dynamic_field_configs[field_name] = field_config
+            self.dynamic_field_names.append(field_name)
+            initial_value = None
+            if self.instance and self.instance.pk:
+                initial_value = self.instance.get_payload_value(field_name)
+                if field_config.get('type') == 'list' and isinstance(initial_value, list):
+                    initial_value = "\n".join(initial_value)
+            if initial_value is not None:
+                self.initial[field_name] = initial_value
+
+    def _determine_section_type(self):
+        section = getattr(self.instance, 'section', None)
+        if not section:
+            section_id = self.data.get('section') or self.initial.get('section')
+            if section_id:
+                try:
+                    section = Section.objects.get(pk=section_id)
+                except Section.DoesNotExist:
+                    section = None
+        return section.section_type if section else 'default'
+
+    def _build_dynamic_field(self, config):
+        field_type = config.get('type', 'text')
+        required = config.get('required', False)
+        label = config.get('label', config['name'].replace('_', ' ').title())
+        help_text = config.get('help_text', '')
+        if field_type == 'text':
+            return forms.CharField(required=required, label=label, help_text=help_text)
+        if field_type == 'textarea':
+            return forms.CharField(required=required, label=label, help_text=help_text, widget=forms.Textarea)
+        if field_type == 'list':
+            hint = help_text or 'Enter one item per line.'
+            return forms.CharField(required=required, label=label, help_text=hint, widget=forms.Textarea)
+        if field_type == 'boolean':
+            return forms.BooleanField(required=False, label=label, help_text=help_text)
+        return None
+
+    def clean(self):
+        cleaned_data = super().clean()
+        payload = dict(self.instance.payload or {})
+        for name in self.dynamic_field_names:
+            value = cleaned_data.get(name)
+            field_type = self.dynamic_field_configs[name].get('type', 'text')
+            if field_type == 'list':
+                value = [item.strip() for item in (value or '').splitlines() if item.strip()]
+            if field_type == 'boolean':
+                value = bool(value)
+            if value in (None, '', []):
+                payload.pop(name, None)
+            else:
+                payload[name] = value
+        cleaned_data['_dynamic_payload'] = payload
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        dynamic_payload = self.cleaned_data.get('_dynamic_payload', {})
+        instance.payload = dynamic_payload
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 class RotatingTextItemForm(forms.ModelForm):
     class Meta:
@@ -351,6 +446,7 @@ class SectionAdmin(SortableAdminMixin, ModelAdmin, TabbedTranslationAdmin):
                     button_color=card_block.button_color,
                     button_text_color=card_block.button_text_color,
                     button_target=card_block.button_target,
+                    payload=card_block.payload,
                     order=card_block.order,
                     is_active=card_block.is_active
                 )
@@ -550,6 +646,32 @@ class CardBlockAdmin(SortableAdminMixin, ModelAdmin, TabbedTranslationAdmin):
     )
     
     readonly_fields = ('click_count', 'created_at', 'updated_at')
+    
+    class Media:
+        js = ('admin/js/card_block_dynamic_fields.js',)
+    
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        # Store section type in form for JavaScript access
+        if obj and obj.section:
+            form.section_type = obj.section.section_type
+        elif request.method == 'GET' and 'section' in request.GET:
+            try:
+                section = Section.objects.get(pk=request.GET['section'])
+                form.section_type = section.section_type
+            except Section.DoesNotExist:
+                form.section_type = 'default'
+        else:
+            form.section_type = 'default'
+        return form
+    
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        # Add all sections with their types for the select dropdown (as JSON string)
+        import json
+        sections = Section.objects.all().values('id', 'section_type', 'name')
+        extra_context['sections_data'] = json.dumps(list(sections))
+        return super().changeform_view(request, object_id, form_url, extra_context)
     
     @admin.display(description="Status", boolean=True, ordering='is_active')
     def is_active_badge(self, obj):

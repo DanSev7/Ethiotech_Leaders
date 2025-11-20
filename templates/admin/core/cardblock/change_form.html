@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {% if sections_data %}
+    <script type="application/json" id="sections-data-script">{{ sections_data }}</script>
+    {% endif %}
+{% endblock %}
+

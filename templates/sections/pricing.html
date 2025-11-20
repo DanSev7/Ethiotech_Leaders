@@ -1,64 +1,166 @@
 {% load icon_filters %}
-<div class="pricing-section py-16">
+{% load custom_filters %}
+{% comment %}/* stylelint-disable */{% endcomment %}
+
+<div class="pricing-section py-16" style="background-color: #0f172b;">
   <div class="container mx-auto px-4">
     <div class="text-center mb-16">
       {% if section.name %}
-      <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: {{ section.section_text_color|default:'#1f2937' }};">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">
         {{ section.name }}
       </h2>
       {% endif %}
       
       {% if section.description %}
-      <div class="text-lg max-w-3xl mx-auto ck-content" style="color: {{ section.section_text_color|default:'#4b5563' }};">
+      <div class="text-lg max-w-3xl mx-auto ck-content text-gray-300">
         {{ section.description|safe }}
       </div>
       {% endif %}
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-{{ section.columns|default:3 }} gap-{{ section.card_gap|default:'8' }}">
-      {% for card in section.card_block.all %}
-      {% if card.is_active %}
+    <!-- Static Pricing Plans -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <!-- Basic Plan -->
       <div class="p-8 rounded-xl shadow-lg text-center relative overflow-hidden" 
-           style="background-color: {{ card.card_bg_color|default:'#ffffff' }}; color: {{ card.card_text_color|default:'#1f2937' }};">
+           style="background-color: #1d293b;">
+        <h3 class="text-2xl font-semibold mb-4 text-white">Basic</h3>
         
-        {% if card.button_label %}
-        <div class="absolute top-0 right-0 bg-{{ card.button_color|default:'#3b82f6' }} text-white px-6 py-2 transform rotate-45 translate-x-8 -translate-y-2" 
-             style="background-color: {{ card.button_color|default:'#3b82f6' }};">
-          <span class="text-sm font-bold">{{ card.button_label }}</span>
+        <div class="text-5xl font-extrabold mb-2 text-white">
+          $29
+          <span class="text-base font-medium text-gray-400">/ month</span>
         </div>
-        {% endif %}
         
-        <h3 class="text-2xl font-semibold mb-4" style="color: {{ card.card_text_color|default:'#1f2937' }};">
-          {{ card.title }}
-        </h3>
+        <p class="text-sm mb-6 text-gray-300">
+          Perfect for individuals
+        </p>
         
-        {% if card.icon %}
-        <div class="mb-6">
-          <i data-lucide="{{ card.icon|to_kebab_case }}"
-             style="width:{{ card.icon_size|default:48 }}px;height:{{ card.icon_size|default:48 }}px;color:{{ card.icon_color|default:'#3b82f6' }};">
-          </i>
-        </div>
-        {% endif %}
+        <ul class="text-left space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Up to 5 projects</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>3GB storage</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Basic support</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-500">
+            <i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>
+            <span>Advanced analytics</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-500">
+            <i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>
+            <span>Custom domain</span>
+          </li>
+        </ul>
         
-        {% if card.text %}
-        <div class="ck-content mb-8" style="color: {{ card.card_text_color|default:'#4b5563' }};">
-          {{ card.text|safe }}
-        </div>
-        {% endif %}
-        
-        {% if card.button_url and card.button_label %}
         <div class="mt-8">
-          <a href="{{ card.button_url }}" 
-             target="{{ card.button_target|default:'_self' }}"
+          <a href="#" 
              class="inline-block w-full py-3 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg"
-             style="background-color: {{ card.button_color|default:'#3b82f6' }}; color: {{ card.button_text_color|default:'white' }};">
-            {{ card.button_label }}
+             style="background-color: #09b6d4; color: white;">
+            Get Started
           </a>
         </div>
-        {% endif %}
       </div>
-      {% endif %}
-      {% endfor %}
+      
+      <!-- Professional Plan (Featured) -->
+      <div class="p-8 rounded-xl shadow-lg text-center relative overflow-hidden ring-4 ring-offset-4 ring-cyan-500 ring-offset-0" 
+           style="background-color: #1d293b;">
+        <div class="absolute top-4 right-4 bg-cyan-500 text-white px-4 py-1 rounded-full text-xs tracking-wide uppercase">
+          Popular
+        </div>
+        
+        <h3 class="text-2xl font-semibold mb-4 text-white">Professional</h3>
+        
+        <div class="text-5xl font-extrabold mb-2 text-white">
+          $79
+          <span class="text-base font-medium text-gray-400">/ month</span>
+        </div>
+        
+        <p class="text-sm mb-6 text-gray-300">
+          Best for small teams
+        </p>
+        
+        <ul class="text-left space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Unlimited projects</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>15GB storage</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Priority support</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Advanced analytics</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-500">
+            <i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>
+            <span>Custom domain</span>
+          </li>
+        </ul>
+        
+        <div class="mt-8">
+          <a href="#" 
+             class="inline-block w-full py-3 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg"
+             style="background-color: #09b6d4; color: white;">
+            Get Started
+          </a>
+        </div>
+      </div>
+      
+      <!-- Enterprise Plan -->
+      <div class="p-8 rounded-xl shadow-lg text-center relative overflow-hidden" 
+           style="background-color: #1d293b;">
+        <h3 class="text-2xl font-semibold mb-4 text-white">Enterprise</h3>
+        
+        <div class="text-5xl font-extrabold mb-2 text-white">
+          $149
+          <span class="text-base font-medium text-gray-400">/ month</span>
+        </div>
+        
+        <p class="text-sm mb-6 text-gray-300">
+          For large organizations
+        </p>
+        
+        <ul class="text-left space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Unlimited projects</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>100GB storage</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>24/7 dedicated support</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Advanced analytics</span>
+          </li>
+          <li class="flex items-center gap-3 text-gray-300">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
+            <span>Custom domain</span>
+          </li>
+        </ul>
+        
+        <div class="mt-8">
+          <a href="#" 
+             class="inline-block w-full py-3 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg"
+             style="background-color: #09b6d4; color: white;">
+            Get Started
+          </a>
+        </div>
+      </div>
     </div>
     
     {% if section.cta_label and section.cta_url %}
@@ -66,7 +168,7 @@
         <a href="{{ section.cta_url }}" 
            target="{{ section.cta_target|default:'_self' }}"
            class="inline-block px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
-           style="background-color: {{ section.cta_bg_color|default:'#3b82f6' }}; color: {{ section.cta_text_color|default:'white' }};">
+           style="background-color: #09b6d4; color: white;">
             {{ section.cta_label }}
         </a>
     </div>
